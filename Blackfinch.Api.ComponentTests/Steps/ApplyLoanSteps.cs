@@ -24,6 +24,14 @@ public class ApplyLoanSteps
             .Load(id)
             .Returns(new ApplicantAggregate());
     }
+
+    public void ApplicantExists(string id, ApplicantAggregate aggregate)
+    {
+        _server.Services
+            .GetRequiredService<IDomainRepository>()
+            .Load(id)
+            .Returns(aggregate);
+    }
     
     public async Task RequestIsSent(string id, LoanRequest request)
     {

@@ -1,6 +1,7 @@
 using Blackfinch.Api.Models;
 using Blackfinch.Domain.Models;
 using Blackfinch.Domain.Repositories;
+using LoanApplication = Blackfinch.Api.Models.LoanApplication;
 
 namespace Blackfinch.Api.Services;
 
@@ -18,7 +19,8 @@ public class LoanService(IDomainRepository repository)
             Success = aggregate.IsLoanSuccessful,
             TotalNumberOfApplications = aggregate.TotalNumberOfApplications(),
             TotalLoanAmount = aggregate.TotalValueOfLoans(),
-            AverageLoanToValue = aggregate.AverageLoanToValue()
+            AverageLoanToValue = aggregate.AverageLoanToValue(),
+            Applications = aggregate.ApplicationHistory.Select(x => new LoanApplication { Amount = x.Amount, Success = x.Success })
         };
     }
 }

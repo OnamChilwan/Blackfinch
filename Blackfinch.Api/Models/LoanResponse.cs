@@ -9,4 +9,6 @@ public class LoanResponse
     public decimal TotalLoanAmount { get; set; }
     
     public decimal AverageLoanToValue { get; set; }
+    
+    public IEnumerable<LoanApplication>? Applications { get; set; }
 }

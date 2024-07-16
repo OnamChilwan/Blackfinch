@@ -6,17 +6,15 @@ namespace Blackfinch.Domain.Aggregates;
 
 public class ApplicantAggregate
 {
-    private readonly List<LoanApplication> _applications;
-
     public ApplicantAggregate()
     {
-        _applications = new List<LoanApplication>();
+        ApplicationHistory = new List<LoanApplication>();
         UncommittedEvents = new List<dynamic>();
     }
 
     public ApplicantAggregate(IEnumerable<dynamic>? events)
     {
-        _applications = new List<LoanApplication>();
+        ApplicationHistory = new List<LoanApplication>();
         UncommittedEvents = new List<dynamic>();
 
         foreach (var @event in events ?? new List<dynamic>())
@@ -67,33 +65,33 @@ public class ApplicantAggregate
 
     public int TotalNumberOfApplications()
     {
-        return _applications.Count;
+        return ApplicationHistory.Count;
     }
 
     public decimal TotalValueOfLoans()
     {
-        return _applications
+        return ApplicationHistory
             .Where(x => x.Success)
             .Sum(x => x.Amount);
     }
 
     public decimal AverageLoanToValue()
     {
-        return _applications.Any(x => x.Success)
-            ? _applications.Where(x => x.Success).Average(x => x.LoanToValue)
+        return ApplicationHistory.Any(x => x.Success)
+            ? ApplicationHistory.Where(x => x.Success).Average(x => x.LoanToValue)
             : 0;
     }
 
     private void Apply(LoanApplicationSucceeded e)
     {
-        _applications.Add(new LoanApplication(e.Amount, e.LoanToValue, true));
+        ApplicationHistory.Add(new LoanApplication(e.Amount, e.LoanToValue, true));
         IsLoanSuccessful = true;
         Id = e.ApplicantId;
     }
 
     private void Apply(LoanDeclined e)
     {
-        _applications.Add(new LoanApplication(e.Amount, e.LoanToValue, false));
+        ApplicationHistory.Add(new LoanApplication(e.Amount, e.LoanToValue, false));
         IsLoanSuccessful = false;
         Id = e.ApplicantId;
     }
@@ -101,6 +99,8 @@ public class ApplicantAggregate
     public string Id { get; private set; }
     
     public bool IsLoanSuccessful { get; private set; }
+    
+    public List<LoanApplication> ApplicationHistory { get; }
     
     public List<dynamic> UncommittedEvents { get; }
 }

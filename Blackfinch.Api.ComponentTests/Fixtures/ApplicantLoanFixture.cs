@@ -1,5 +1,7 @@
 using Blackfinch.Api.ComponentTests.Steps;
 using Blackfinch.Api.Models;
+using Blackfinch.Domain.Aggregates;
+using Blackfinch.Domain.Events;
 using TestStack.BDDfy;
 
 namespace Blackfinch.Api.ComponentTests.Fixtures;
@@ -35,6 +37,42 @@ public class ApplicantLoanFixture
                 TotalLoanAmount = request.LoanAmount,
                 AverageLoanToValue = 57,
                 Success = true
+            }))
+            .BDDfy(); 
+    }
+    
+    [Test]
+    public void Given_Existing_Applicant_With_Successful_And_Declined_Loans_When_Valid_Request_Is_Sent_Then_Created_Response_Is_Returned()
+    {
+        var request = new LoanRequest
+        {
+            AssetValue = 350000,
+            CreditScore = 950,
+            LoanAmount = 200000
+        };
+
+        var aggregate = new ApplicantAggregate(new List<dynamic>
+        {
+            new LoanApplicationSucceeded(Id, 12, 30),
+            new LoanDeclined(Id, "Testing", 12, 30)
+        });
+        
+        this.Given(_ => _steps.ApplicantExists(Id, aggregate))
+            .When(_ => _steps.RequestIsSent(Id, request))
+            .Then(_ => _steps.CreatedResponseIsReturned())
+            .And(_ => _steps.AggregateIsSaved(Id))
+            .And(_ => _steps.LoanResponseIsCorrect(new LoanResponse
+            {
+                TotalNumberOfApplications = 3,
+                TotalLoanAmount = 200012M,
+                AverageLoanToValue = 43.50M,
+                Success = true,
+                Applications = new List<LoanApplication>
+                {
+                    new() { Success = true, Amount = 12 },
+                    new() { Success = false, Amount = 12 },
+                    new() { Success = true, Amount = request.LoanAmount }
+                }
             }))
             .BDDfy(); 
     }
