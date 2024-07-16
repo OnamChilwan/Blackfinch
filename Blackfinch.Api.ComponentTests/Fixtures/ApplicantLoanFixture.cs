@@ -6,6 +6,7 @@ namespace Blackfinch.Api.ComponentTests.Fixtures;
 
 public class ApplicantLoanFixture
 {
+    private const string id = "123";
     private ApplyLoanSteps _steps = null!;
 
     [SetUp]
@@ -19,15 +20,30 @@ public class ApplicantLoanFixture
     {
         var request = new LoanRequest
         {
-            Id = "123",
             AssetValue = 350000,
             CreditScore = 950,
             LoanAmount = 200000
         };
         
         this.Given(_ => _steps.RequestOf(request))
-            .When(_ => _steps.RequestIsSent())
+            .When(_ => _steps.RequestIsSent(id))
             .Then(_ => _steps.CreatedResponseIsReturned())
             .BDDfy(); 
+    }
+    
+    [Test]
+    public void Given_Invalid_Request_When_Request_Is_Sent_Then_Bad_Request_Is_Returned()
+    {
+        var request = new LoanRequest
+        {
+            AssetValue = 0,
+            CreditScore = 0,
+            LoanAmount = 0
+        };
+        
+        this.Given(_ => _steps.RequestOf(request))
+            .When(_ => _steps.RequestIsSent(id))
+            .Then(_ => _steps.BadRequestResponseIsReturned())
+            .BDDfy();
     }
 }

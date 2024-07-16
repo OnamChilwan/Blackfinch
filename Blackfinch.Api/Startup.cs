@@ -1,3 +1,6 @@
+using Blackfinch.Api.Validators;
+using FluentValidation;
+
 namespace Blackfinch.Api;
 
 public class Startup(IConfiguration configuration)
@@ -12,6 +15,7 @@ public class Startup(IConfiguration configuration)
     {
         services.AddControllers().AddApplicationPart(typeof(Startup).Assembly);
         services.AddRouting();
+        services.AddValidatorsFromAssemblyContaining<LoanRequestValidator>();
         
         ConfigureExternalDependencies(services);
     }
