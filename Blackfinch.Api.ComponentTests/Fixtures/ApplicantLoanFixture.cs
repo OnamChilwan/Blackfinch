@@ -6,7 +6,7 @@ namespace Blackfinch.Api.ComponentTests.Fixtures;
 
 public class ApplicantLoanFixture
 {
-    private const string id = "123";
+    private const string Id = "123";
     private ApplyLoanSteps _steps = null!;
 
     [SetUp]
@@ -25,9 +25,17 @@ public class ApplicantLoanFixture
             LoanAmount = 200000
         };
         
-        this.Given(_ => _steps.RequestOf(request))
-            .When(_ => _steps.RequestIsSent(id))
+        this.Given(_ => _steps.ApplicantDoesNotExist(Id))
+            .When(_ => _steps.RequestIsSent(Id, request))
             .Then(_ => _steps.CreatedResponseIsReturned())
+            .And(_ => _steps.AggregateIsSaved(Id))
+            .And(_ => _steps.LoanResponseIsCorrect(new LoanResponse
+            {
+                TotalNumberOfApplications = 1,
+                TotalLoanAmount = request.LoanAmount,
+                AverageLoanToValue = 57,
+                Success = true
+            }))
             .BDDfy(); 
     }
     
@@ -41,9 +49,33 @@ public class ApplicantLoanFixture
             LoanAmount = 0
         };
         
-        this.Given(_ => _steps.RequestOf(request))
-            .When(_ => _steps.RequestIsSent(id))
+        this.Given(_ => _steps.ApplicantDoesNotExist(Id))
+            .When(_ => _steps.RequestIsSent(Id, request))
             .Then(_ => _steps.BadRequestResponseIsReturned())
+            .BDDfy();
+    }
+    
+    [Test]
+    public void Given_An_Invalid_Loan_Request_When_Request_Is_Sent_Then_Unprocessable_Response_Is_Returned()
+    {
+        var request = new LoanRequest
+        {
+            AssetValue = 2000000,
+            CreditScore = 950,
+            LoanAmount = 100
+        };
+        
+        this.Given(_ => _steps.ApplicantDoesNotExist(Id))
+            .When(_ => _steps.RequestIsSent(Id, request))
+            .Then(_ => _steps.UnprocessableResponseIsReturned())
+            .And(_ => _steps.AggregateIsSaved(Id))
+            .And(_ => _steps.LoanResponseIsCorrect(new LoanResponse
+            {
+                TotalNumberOfApplications = 1,
+                TotalLoanAmount = 0,
+                AverageLoanToValue = 0,
+                Success = false
+            }))
             .BDDfy();
     }
 }
