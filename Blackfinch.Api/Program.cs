@@ -1,44 +1,37 @@
-var builder = WebApplication.CreateBuilder(args);
+using Blackfinch.Api;
+using Microsoft.AspNetCore;
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+var config = CreateConfiguration().Build();
 
-var app = builder.Build();
+// Log.Logger = new LoggerConfiguration()
+//     .MinimumLevel.Information()
+//     .Enrich.FromLogContext()
+//     .Enrich.WithExceptionDetails()
+//     .WriteTo.Console(LogEventLevel.Information)
+//     .CreateLogger();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+var builder = WebHost
+    .CreateDefaultBuilder(args)
+    .ConfigureServices((ctx, services) =>
     {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
+        services.AddLogging(b => b.AddConsole());
+        // services.AddLogging(builder => builder.AddSerilog());
+        services.AddControllers();
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
     })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
+    .ConfigureAppConfiguration(app =>
+    {
+        app.AddConfiguration(config);
+    })
+    .UseStartup<Startup>();
 
-app.Run();
+await builder.Build().RunAsync();
+return;
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+static IConfigurationBuilder CreateConfiguration()
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    return new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json")
+        .AddEnvironmentVariables();
 }
