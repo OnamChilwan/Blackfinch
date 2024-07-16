@@ -1,0 +1,6 @@
+@Blackfinch.Api_HostAddress = http://localhost:5188
+
+GET {{Blackfinch.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
